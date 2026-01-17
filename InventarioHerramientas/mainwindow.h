@@ -3,10 +3,21 @@
 
 #include <QMainWindow>
 
+using namespace std;
+
+struct Herramientas{
+    int id;
+    string nombre;
+    int cantidad;
+    string estado;
+
+};
+
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class MainWindow;
 }
+
 QT_END_NAMESPACE
 
 class MainWindow : public QMainWindow
@@ -18,6 +29,9 @@ public:
     ~MainWindow();
 
 private:
+
+    void on_btnRegistrar_clicked();
+    void on_btnSalir_clicked();
     Ui::MainWindow *ui;
 };
 #endif // MAINWINDOW_H
