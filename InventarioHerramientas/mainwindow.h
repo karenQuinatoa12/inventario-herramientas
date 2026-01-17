@@ -29,7 +29,10 @@ public:
     ~MainWindow();
 
 private:
-
+    void on_btnAgregar_clicked();
+    void on_btnModificar_clicked();
+    void on_btnEliminar_clicked();
+    void on_btnLimpiar_clicked();
     void on_btnRegistrar_clicked();
     void on_btnSalir_clicked();
     Ui::MainWindow *ui;
