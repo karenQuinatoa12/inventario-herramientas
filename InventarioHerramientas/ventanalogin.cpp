@@ -10,6 +10,7 @@ VentanaLogin::VentanaLogin(QWidget *parent)
     , ui(new Ui::VentanaLogin)
 {
     ui->setupUi(this);
+    ui->txtUser->setFocus();
 }
 
 VentanaLogin::~VentanaLogin()
@@ -23,7 +24,7 @@ void VentanaLogin::on_btnRegistrar_clicked()
     string pass = ui->txtPass->text().toStdString();
 
     if(user.empty() || pass.empty()) {
-        QMessageBox::warning(this, "Error", "Debes llenar ambos campos");
+        QMessageBox::warning(this, "Error", "No puedes registrar un usuario o contraseña vacíos.");
         return;
     }
 
@@ -32,6 +33,10 @@ void VentanaLogin::on_btnRegistrar_clicked()
         archivo << user << " " << pass << endl;
         archivo.close();
         QMessageBox::information(this, "Éxito", "¡Usuario registrado correctamente!");
+
+        // Limpiar campos después de registrar para mayor comodidad
+        ui->txtUser->clear();
+        ui->txtPass->clear();
     }
 }
 
@@ -40,9 +45,19 @@ void VentanaLogin::on_btnIngresar_clicked()
     string userIn = ui->txtUser->text().toStdString();
     string passIn = ui->txtPass->text().toStdString();
 
+    if(userIn.empty() || passIn.empty()) {
+        QMessageBox::warning(this, "Campos Incompletos", "Por favor, ingresa tus credenciales.");
+        return;
+    }
+
     ifstream archivo("usuarios.txt");
     string u, p;
     bool encontrado = false;
+
+    if(!archivo.is_open()) {
+        QMessageBox::critical(this, "Error de Sistema", "No existe base de datos de usuarios. Registra uno primero.");
+        return;
+    }
 
     while(archivo >> u >> p) {
         if(u == userIn && p == passIn) {
@@ -53,8 +68,10 @@ void VentanaLogin::on_btnIngresar_clicked()
     archivo.close();
 
     if(encontrado) {
-        accept(); // Cierra el login con éxito para abrir el menú principal
+        accept();
     } else {
-        QMessageBox::critical(this, "Error", "Usuario o contraseña incorrectos");
+        QMessageBox::critical(this, "Acceso Denegado", "Usuario o contraseña incorrectos.");
+        ui->txtPass->clear();
+        ui->txtPass->setFocus();
     }
 }
