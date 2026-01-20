@@ -28,13 +28,35 @@ void VentanaLogin::on_btnRegistrar_clicked()
         return;
     }
 
-    ofstream archivo("usuarios.txt", ios::app);
-    if(archivo.is_open()) {
-        archivo << user << " " << pass << endl;
-        archivo.close();
+    ifstream archivoLectura("usuarios.txt");
+    string u, p;
+    bool existe = false;
+
+    if(archivoLectura.is_open()){
+        while(archivoLectura >> u >> p) {
+            if(u == user) {
+                existe = true;
+                break;
+            }
+        }
+        archivoLectura.close();
+    }
+
+    if(existe) {
+        QMessageBox::warning(this, "Usuario Duplicado", "Este nombre de usuario ya está registrado. Elige otro.");
+        ui->txtUser->clear();
+        ui->txtPass->clear();
+        ui->txtUser->setFocus();
+
+        return;
+    }
+
+    ofstream archivoEscritura("usuarios.txt", ios::app);
+    if(archivoEscritura.is_open()) {
+        archivoEscritura << user << " " << pass << endl;
+        archivoEscritura.close();
         QMessageBox::information(this, "Éxito", "¡Usuario registrado correctamente!");
 
-        // Limpiar campos después de registrar para mayor comodidad
         ui->txtUser->clear();
         ui->txtPass->clear();
     }
