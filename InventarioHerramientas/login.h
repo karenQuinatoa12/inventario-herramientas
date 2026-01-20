@@ -1,5 +1,5 @@
-#ifndef VENTANALOGIN_H
-#define VENTANALOGIN_H
+#ifndef LOGIN_H
+#define LOGIN_H
 
 #include <QDialog>
 
@@ -22,4 +22,4 @@ private slots:
     void on_btnIngresar_clicked();
 };
 
-#endif // VENTANALOGIN_H
+#endif // LOGIN_H

@@ -1,5 +1,5 @@
-#include "ventanalogin.h"
-#include "ui_ventanalogin.h"
+#include "login.h"
+#include "ui_login.h"
 #include <fstream>
 #include <QMessageBox>
 
