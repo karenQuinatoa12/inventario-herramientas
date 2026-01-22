@@ -11,7 +11,8 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-
+    // mainwindow.cpp
+    ui->centralwidget->setStyleSheet("#centralwidget { border-image: url(:/fondo.png) 0 0 0 0 stretch stretch; }");
     int ultimoID = 0;
 
     ifstream archivo("inventario.txt");
