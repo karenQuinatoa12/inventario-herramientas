@@ -37,5 +37,6 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
+    void actualizarArchivo(int idObjetivo, string nuevoNombre, int nuevaCant, double nuevoPrecio);
 };
 #endif // MAINWINDOW_H

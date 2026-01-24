@@ -2,7 +2,8 @@
 #include "./ui_mainwindow.h"
 #include <QMessageBox>
 #include <fstream>
-
+#include <vector>
+#include "dialogmodificar.h"
 using namespace std;
 
 MainWindow::MainWindow(QWidget *parent)
@@ -10,7 +11,8 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-
+    ui->tblMostrar->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->tblMostrar->setSelectionMode(QAbstractItemView::SingleSelection);
     // mainwindow.cpp
     ui->centralwidget->setStyleSheet("#centralwidget { border-image: url(:/fondo.png) 0 0 0 0 stretch stretch; }");
     int ultimoID = 0;
@@ -146,10 +148,82 @@ void MainWindow::on_btnAgregar_clicked()
         ui->txtNombre->setFocus();
     }
 }
+void MainWindow::actualizarArchivo(int idObjetivo, string nuevoNombre, int nuevaCant, double nuevoPrecio) {
+    ifstream archivoLectura("inventario.txt");
+    vector<string> lineas;
+    string id, nom, cant, prec;
+
+    // Leemos todo el archivo y actualizamos la línea coincidente en memoria
+    if (archivoLectura.is_open()) {
+        while (archivoLectura >> id >> nom >> cant >> prec) {
+            if (stoi(id) == idObjetivo) {
+                // Esta es la línea a modificar, guardamos los nuevos datos
+                lineas.push_back(id + " " + nuevoNombre + " " + to_string(nuevaCant) + " " + QString::number(nuevoPrecio, 'f', 2).toStdString());
+            } else {
+                // Mantenemos los datos originales
+                lineas.push_back(id + " " + nom + " " + cant + " " + prec);
+            }
+        }
+        archivoLectura.close();
+    }
+
+    // Reescribimos el archivo con los datos actualizados
+    ofstream archivoEscritura("inventario.txt", ios::trunc); // ios::trunc borra el contenido anterior
+    if (archivoEscritura.is_open()) {
+        for (const string &linea : lineas) {
+            archivoEscritura << linea << endl;
+        }
+        archivoEscritura.close();
+    }
+}
+
+// En mainwindow.cpp
 
 void MainWindow::on_btnModificar_clicked()
 {
+    // 1. VALIDACIÓN ESTRICTA: Verificamos si la lista de items seleccionados está vacía
+    if (ui->tblMostrar->selectedItems().isEmpty()) {
+        QMessageBox::warning(this, "Selección Requerida", "Por favor, elija el producto a modificar de la lista.");
+        return; // Detenemos la función aquí si no hay selección
+    }
 
+    int fila = ui->tblMostrar->currentRow();
+
+    // Doble verificación de seguridad (por si acaso fila sea inválida)
+    if (fila < 0) {
+        return;
+    }
+
+    // 2. Obtener datos actuales de la fila seleccionada
+    // (Asegúrate de que las columnas coincidan con tu tabla: 0=ID, 1=Nombre, 2=Cantidad, 3=Precio)
+    QString idStr = ui->tblMostrar->item(fila, 0)->text();
+    QString nombreActual = ui->tblMostrar->item(fila, 1)->text();
+    QString cantActual = ui->tblMostrar->item(fila, 2)->text();
+    QString precioActual = ui->tblMostrar->item(fila, 3)->text();
+
+    // 3. Abrir la ventana emergente
+    DialogModificar ventanaEdicion(this);
+    ventanaEdicion.setDatos(nombreActual, cantActual, precioActual);
+
+    // 4. Si el usuario guarda los cambios
+    if (ventanaEdicion.exec() == QDialog::Accepted) {
+        QString nuevoNombre = ventanaEdicion.getNombre();
+        QString nuevaCantStr = ventanaEdicion.getCantidad();
+        QString nuevoPrecioStr = ventanaEdicion.getPrecio();
+
+        // Actualizamos el archivo .txt
+        actualizarArchivo(idStr.toInt(), nuevoNombre.toStdString(), nuevaCantStr.toInt(), nuevoPrecioStr.toDouble());
+
+        // Actualizamos la tabla visualmente
+        ui->tblMostrar->item(fila, 1)->setText(nuevoNombre);
+        ui->tblMostrar->item(fila, 2)->setText(nuevaCantStr);
+        ui->tblMostrar->item(fila, 3)->setText(nuevoPrecioStr);
+
+        QMessageBox::information(this, "Éxito", "Producto modificado correctamente.");
+
+        // Quitamos la selección para obligar a seleccionar de nuevo si quiere modificar otro
+        ui->tblMostrar->clearSelection();
+    }
 }
 
 void MainWindow::on_btnEliminar_clicked()
