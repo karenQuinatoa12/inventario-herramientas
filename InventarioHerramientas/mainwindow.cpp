@@ -11,6 +11,11 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    ui->tblMostrar->setStyleSheet("color: black; background-color: white;");
+    ui->txtNombre->setStyleSheet("background-color: white; color: black;");
+    ui->txtCantidad->setStyleSheet("background-color: white; color: black;");
+    ui->txtPrecio->setStyleSheet("background-color: white; color: black;");
+    ui->txtBuscar->setStyleSheet("background-color: white; color: black;");
     ui->tblMostrar->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->tblMostrar->setSelectionMode(QAbstractItemView::SingleSelection);
     // mainwindow.cpp
@@ -26,10 +31,23 @@ MainWindow::MainWindow(QWidget *parent)
 
             int fila = ui->tblMostrar->rowCount();
             ui->tblMostrar->insertRow(fila);
-            ui->tblMostrar->setItem(fila, 0, new QTableWidgetItem(QString::fromStdString(id)));
-            ui->tblMostrar->setItem(fila, 1, new QTableWidgetItem(QString::fromStdString(nom)));
-            ui->tblMostrar->setItem(fila, 2, new QTableWidgetItem(QString::fromStdString(cant)));
-            ui->tblMostrar->setItem(fila, 3, new QTableWidgetItem(QString::fromStdString(prec)));
+
+            // Creamos cada item y le forzamos el color negro
+            QTableWidgetItem *it0 = new QTableWidgetItem(QString::fromStdString(id));
+            it0->setForeground(Qt::black);
+            ui->tblMostrar->setItem(fila, 0, it0);
+
+            QTableWidgetItem *it1 = new QTableWidgetItem(QString::fromStdString(nom));
+            it1->setForeground(Qt::black);
+            ui->tblMostrar->setItem(fila, 1, it1);
+
+            QTableWidgetItem *it2 = new QTableWidgetItem(QString::fromStdString(cant));
+            it2->setForeground(Qt::black);
+            ui->tblMostrar->setItem(fila, 2, it2);
+
+            QTableWidgetItem *it3 = new QTableWidgetItem(QString::fromStdString(prec));
+            it3->setForeground(Qt::black);
+            ui->tblMostrar->setItem(fila, 3, it3);
         }
         archivo.close();
     }
@@ -110,6 +128,20 @@ void MainWindow::on_btnAgregar_clicked()
     QString cantidadStr = ui->txtCantidad->text();
     QString precioStr = ui->txtPrecio->text();
 
+    bool yaExiste = false;
+    for (int i = 0; i < ui->tblMostrar->rowCount(); ++i) {
+        // Comparamos el nombre ingresado con los de la columna 1 de la tabla
+        if (ui->tblMostrar->item(i, 1)->text().toLower() == nombre.toLower()) {
+            yaExiste = true;
+            break;
+        }
+    }
+
+    if (yaExiste) {
+        QMessageBox::warning(this, "Ferretería", "Este producto ya está registrado en el inventario.");
+        return;
+    }
+
 
     if(nombre.isEmpty() || cantidadStr.isEmpty() || precioStr.isEmpty()) {
         QMessageBox::warning(this, "Error", "Debe llenar Nombre, Cantidad y Precio.");
@@ -133,10 +165,22 @@ void MainWindow::on_btnAgregar_clicked()
 
         int fila = ui->tblMostrar->rowCount();
         ui->tblMostrar->insertRow(fila);
-        ui->tblMostrar->setItem(fila, 0, new QTableWidgetItem(QString::number(nuevoID)));
-        ui->tblMostrar->setItem(fila, 1, new QTableWidgetItem(nombre));
-        ui->tblMostrar->setItem(fila, 2, new QTableWidgetItem(QString::number(cantidad)));
-        ui->tblMostrar->setItem(fila, 3, new QTableWidgetItem(QString::number(precio)));
+
+        QTableWidgetItem *itAgregar0 = new QTableWidgetItem(QString::number(nuevoID));
+        itAgregar0->setForeground(Qt::black);
+        ui->tblMostrar->setItem(fila, 0, itAgregar0);
+
+        QTableWidgetItem *itAgregar1 = new QTableWidgetItem(nombre);
+        itAgregar1->setForeground(Qt::black);
+        ui->tblMostrar->setItem(fila, 1, itAgregar1);
+
+        QTableWidgetItem *itAgregar2 = new QTableWidgetItem(QString::number(cantidad));
+        itAgregar2->setForeground(Qt::black);
+        ui->tblMostrar->setItem(fila, 2, itAgregar2);
+
+        QTableWidgetItem *itAgregar3 = new QTableWidgetItem(QString::number(precio));
+        itAgregar3->setForeground(Qt::black);
+        ui->tblMostrar->setItem(fila, 3, itAgregar3);
 
 
         ui->txtID->setText(QString::number(nuevoID + 1));
