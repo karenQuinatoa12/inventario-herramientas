@@ -271,6 +271,7 @@ void MainWindow::on_btnEliminar_clicked()
 
 }
 
+//correcion
 
 
 
