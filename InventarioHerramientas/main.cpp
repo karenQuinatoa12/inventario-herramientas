@@ -9,7 +9,7 @@ int main(int argc, char *argv[])
     int codigoSalida = 0;
 
     do {
-        // Cambiamos 'Login' por 'VentanaLogin' porque así se llama en tu login.h
+
         VentanaLogin wLogin;
 
         if (wLogin.exec() == QDialog::Accepted) {

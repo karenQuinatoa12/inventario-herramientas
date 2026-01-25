@@ -3,6 +3,7 @@
 #include <QMessageBox>
 #include <fstream>
 #include <vector>
+#include <QRegularExpressionValidator>
 #include "dialogmodificar.h"
 using namespace std;
 
@@ -21,37 +22,33 @@ MainWindow::MainWindow(QWidget *parent)
     // mainwindow.cpp
     ui->centralwidget->setStyleSheet("#centralwidget { border-image: url(:/fondo.png) 0 0 0 0 stretch stretch; }");
     int ultimoID = 0;
-
     ifstream archivo("inventario.txt");
     if (archivo.is_open()) {
-        string id, nom, cant, prec;
-        while(archivo >> id >> nom >> cant >> prec) {
+        string id, nom, cant, prec_str; // Cambiamos el nombre para no confundirnos
+        while(archivo >> id >> nom >> cant >> prec_str) {
             int idInt = stoi(id);
             if (idInt > ultimoID) ultimoID = idInt;
 
             int fila = ui->tblMostrar->rowCount();
             ui->tblMostrar->insertRow(fila);
 
-            // Creamos cada item y le forzamos el color negro
-            QTableWidgetItem *it0 = new QTableWidgetItem(QString::fromStdString(id));
-            it0->setForeground(Qt::black);
-            ui->tblMostrar->setItem(fila, 0, it0);
+            // Convertimos el precio de texto a número para darle formato de 2 decimales
+            double precioLeido = stod(prec_str);
 
-            QTableWidgetItem *it1 = new QTableWidgetItem(QString::fromStdString(nom));
-            it1->setForeground(Qt::black);
-            ui->tblMostrar->setItem(fila, 1, it1);
+            // Columnas 0, 1 y 2 (ID, Nombre, Cantidad)
+            ui->tblMostrar->setItem(fila, 0, new QTableWidgetItem(QString::fromStdString(id)));
+            ui->tblMostrar->setItem(fila, 1, new QTableWidgetItem(QString::fromStdString(nom)));
+            ui->tblMostrar->setItem(fila, 2, new QTableWidgetItem(QString::fromStdString(cant)));
 
-            QTableWidgetItem *it2 = new QTableWidgetItem(QString::fromStdString(cant));
-            it2->setForeground(Qt::black);
-            ui->tblMostrar->setItem(fila, 2, it2);
+            // Columna 3 (Precio) con el formato de 2 decimales
+            QTableWidgetItem *itPrecio = new QTableWidgetItem(QString::number(precioLeido, 'f', 2));
+            itPrecio->setForeground(Qt::black);
+            ui->tblMostrar->setItem(fila, 3, itPrecio);
 
-            QTableWidgetItem *it3 = new QTableWidgetItem(QString::fromStdString(prec));
-            it3->setForeground(Qt::black);
-            ui->tblMostrar->setItem(fila, 3, it3);
+            // Asegúrate de ponerle color negro a los otros items también si lo necesitas
         }
         archivo.close();
     }
-
 
     ui->txtID->setReadOnly(true);
     ui->txtID->setText(QString::number(ultimoID + 1));
@@ -130,7 +127,6 @@ void MainWindow::on_btnAgregar_clicked()
 
     bool yaExiste = false;
     for (int i = 0; i < ui->tblMostrar->rowCount(); ++i) {
-        // Comparamos el nombre ingresado con los de la columna 1 de la tabla
         if (ui->tblMostrar->item(i, 1)->text().toLower() == nombre.toLower()) {
             yaExiste = true;
             break;
@@ -178,10 +174,10 @@ void MainWindow::on_btnAgregar_clicked()
         itAgregar2->setForeground(Qt::black);
         ui->tblMostrar->setItem(fila, 2, itAgregar2);
 
-        QTableWidgetItem *itAgregar3 = new QTableWidgetItem(QString::number(precio));
+
+        QTableWidgetItem *itAgregar3 = new QTableWidgetItem(QString::number(precio, 'f', 2));
         itAgregar3->setForeground(Qt::black);
         ui->tblMostrar->setItem(fila, 3, itAgregar3);
-
 
         ui->txtID->setText(QString::number(nuevoID + 1));
 
@@ -197,7 +193,7 @@ void MainWindow::actualizarArchivo(int idObjetivo, string nuevoNombre, int nueva
     vector<string> lineas;
     string id, nom, cant, prec;
 
-    // Leemos todo el archivo y actualizamos la línea coincidente en memoria
+
     if (archivoLectura.is_open()) {
         while (archivoLectura >> id >> nom >> cant >> prec) {
             if (stoi(id) == idObjetivo) {
@@ -265,7 +261,7 @@ void MainWindow::on_btnModificar_clicked()
 
         QMessageBox::information(this, "Éxito", "Producto modificado correctamente.");
 
-        // Quitamos la selección para obligar a seleccionar de nuevo si quiere modificar otro
+
         ui->tblMostrar->clearSelection();
     }
 }
@@ -274,7 +270,6 @@ void MainWindow::on_btnEliminar_clicked()
 {
 
 }
-//correcion
 
 
 
