@@ -19,6 +19,22 @@ MainWindow::MainWindow(QWidget *parent)
     ui->txtBuscar->setStyleSheet("background-color: white; color: black;");
     ui->tblMostrar->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->tblMostrar->setSelectionMode(QAbstractItemView::SingleSelection);
+    ui->tblMostrar->setStyleSheet(
+        "QTableWidget { "
+        "  background-color: white; "
+        "  color: black; "
+        "  gridline-color: #d3d3d3; " // Color de las líneas de la cuadrícula
+        "  selection-background-color: #ff9800; " // Fondo naranja al seleccionar
+        "  selection-color: white; " // Texto blanco al seleccionar
+        "}"
+        "QTableWidget::item:selected { "
+        "  background-color: #ff9800; " // Refuerza el naranja sólido
+        "  color: white; "
+        "}"
+        );
+    ui->tblMostrar->verticalHeader()->setVisible(false);
+    ui->centralwidget->setStyleSheet("#centralwidget { border-image: url(:/fondo.png) 0 0 0 0 stretch stretch; }");
+
     // mainwindow.cpp
     ui->centralwidget->setStyleSheet("#centralwidget { border-image: url(:/fondo.png) 0 0 0 0 stretch stretch; }");
     int ultimoID = 0;
@@ -268,7 +284,54 @@ void MainWindow::on_btnModificar_clicked()
 
 void MainWindow::on_btnEliminar_clicked()
 {
+    if (ui->tblMostrar->selectedItems().isEmpty()) {
+        QMessageBox::warning(this, "Eliminar", "Seleccione un producto para borrar.");
+        return;
+    }
 
+    int filaAEliminar = ui->tblMostrar->currentRow();
+
+    if (QMessageBox::question(this, "Confirmar", "¿Eliminar este producto y reorganizar IDs?") == QMessageBox::Yes) {
+
+        // 1. Eliminamos de la tabla visual
+        ui->tblMostrar->removeRow(filaAEliminar);
+
+        // 2. REORGANIZACIÓN: Recorremos TODA la tabla para reasignar IDs dinámicamente
+        // Esto hace que si borras el 2, el que era 3 ahora se escriba como 2 en el archivo
+        ifstream leer("inventario.txt");
+        vector<string> nombres, cantidades, precios;
+        string id_viejo, n, c, p;
+
+        // Leemos todos los datos excepto el que eliminamos
+        int contadorFila = 0;
+        while(leer >> id_viejo >> n >> c >> p) {
+            if (contadorFila != filaAEliminar) {
+                nombres.push_back(n);
+                cantidades.push_back(c);
+                precios.push_back(p);
+            }
+            contadorFila++;
+        }
+        leer.close();
+
+        // 3. Reescribimos el archivo con NUEVOS IDs SECUENCIALES
+        ofstream escribir("inventario.txt", ios::trunc);
+        for(int i = 0; i < nombres.size(); i++) {
+            // El nuevo ID es simplemente la posición (i + 1)
+            escribir << (i + 1) << " " << nombres[i] << " " << cantidades[i] << " " << precios[i] << endl;
+        }
+        escribir.close();
+
+        // 4. Actualizamos la tabla visualmente para que los IDs coincidan con el archivo
+        for(int i = 0; i < ui->tblMostrar->rowCount(); i++) {
+            ui->tblMostrar->item(i, 0)->setText(QString::number(i + 1));
+        }
+
+        // 5. Actualizamos el próximo ID disponible en el formulario
+        ui->txtID->setText(QString::number(ui->tblMostrar->rowCount() + 1));
+
+        QMessageBox::information(this, "Éxito", "Producto eliminado y numeración reiniciada.");
+    }
 }
 
 //correcion
