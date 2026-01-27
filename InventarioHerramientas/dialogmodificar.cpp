@@ -1,6 +1,7 @@
 #include "dialogmodificar.h"
 #include "ui_dialogmodificar.h"
 #include <QMessageBox>
+#include <QRegularExpressionValidator>
 
 DialogModificar::DialogModificar(QWidget *parent) :
     QDialog(parent),
@@ -8,6 +9,22 @@ DialogModificar::DialogModificar(QWidget *parent) :
 {
     ui->setupUi(this);
     setWindowTitle("Modificar Producto");
+    QRegularExpression rx("^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]*$");
+
+    // Creamos el validador basado en esa regla
+    QValidator *validadorNombre = new QRegularExpressionValidator(rx, this);
+
+    // Aplicamos el validador al campo de texto del nombre
+    ui->txtNombreMod->setValidator(validadorNombre);
+    QRegularExpression rxPrecio("^\\d{1,8}(\\.\\d{0,2})?$");
+    QValidator *valPrecio = new QRegularExpressionValidator(rxPrecio, this);
+    ui->txtPrecioMod->setValidator(valPrecio);
+
+    // --- 3. (OPCIONAL) VALIDACIÓN CANTIDAD (Solo enteros) ---
+    // Esto evita que pongan decimales o letras en la cantidad
+    QRegularExpression rxCantidad("^\\d{1,5}$"); // Máximo 5 dígitos enteros
+    QValidator *valCantidad = new QRegularExpressionValidator(rxCantidad, this);
+    ui->txtCantidadMod->setValidator(valCantidad);
 }
 
 DialogModificar::~DialogModificar()
