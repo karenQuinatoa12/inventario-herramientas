@@ -20,13 +20,32 @@ VentanaLogin::~VentanaLogin()
 
 void VentanaLogin::on_btnRegistrar_clicked()
 {
-    string user = ui->txtUser->text().toStdString();
-    string pass = ui->txtPass->text().toStdString();
+    QString qUser = ui->txtUser->text();
+    QString qPass = ui->txtPass->text();
+
+
+    for(const QChar &c : qUser) {
+        if(!c.isLetter()) {
+            QMessageBox::warning(this, "Usuario Inválido", "El usuario solo puede contener letras y no debe tener espacios.");
+            return;
+        }
+    }
+
+    if(qPass.contains(" ")) {
+        QMessageBox::warning(this, "Contraseña Inválida", "La contraseña no puede contener espacios.");
+        return;
+    }
+
+    string user = qUser.toStdString();
+    string pass = qPass.toStdString();
+
 
     if(user.empty() || pass.empty()) {
         QMessageBox::warning(this, "Error", "No puedes registrar un usuario o contraseña vacíos.");
         return;
     }
+
+
 
     ifstream archivoLectura("usuarios.txt");
     string u, p;
@@ -43,13 +62,13 @@ void VentanaLogin::on_btnRegistrar_clicked()
     }
 
     if(existe) {
-        QMessageBox::warning(this, "Usuario Duplicado", "Este nombre de usuario ya está registrado. Elige otro.");
+        QMessageBox::warning(this, "Usuario Duplicado", "Este nombre de usuario ya está registrado.");
         ui->txtUser->clear();
         ui->txtPass->clear();
         ui->txtUser->setFocus();
-
         return;
     }
+
 
     ofstream archivoEscritura("usuarios.txt", ios::app);
     if(archivoEscritura.is_open()) {
@@ -77,9 +96,10 @@ void VentanaLogin::on_btnIngresar_clicked()
     bool encontrado = false;
 
     if(!archivo.is_open()) {
-        QMessageBox::critical(this, "Error de Sistema", "No existe base de datos de usuarios. Registra uno primero.");
+        QMessageBox::critical(this, "Error de Sistema", "No existe base de datos. Registra un usuario primero.");
         return;
     }
+
 
     while(archivo >> u >> p) {
         if(u == userIn && p == passIn) {

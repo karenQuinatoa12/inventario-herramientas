@@ -138,8 +138,17 @@ void MainWindow::on_btnAgregar_clicked()
 
 
     QString nombre = ui->txtNombre->text();
+
     QString cantidadStr = ui->txtCantidad->text();
     QString precioStr = ui->txtPrecio->text();
+
+    for(const QChar &c : nombre) {
+        if(c.isDigit()) {
+            QMessageBox::warning(this, "Error de Nombre", "El nombre del producto no puede contener números.");
+            return;
+        }
+    }
+
 
     bool yaExiste = false;
     for (int i = 0; i < ui->tblMostrar->rowCount(); ++i) {
@@ -159,6 +168,7 @@ void MainWindow::on_btnAgregar_clicked()
         QMessageBox::warning(this, "Error", "Debe llenar Nombre, Cantidad y Precio.");
         return;
     }
+
 
     bool okCant, okPrec;
     int cantidad = cantidadStr.toInt(&okCant);
@@ -237,31 +247,28 @@ void MainWindow::actualizarArchivo(int idObjetivo, string nuevoNombre, int nueva
 
 void MainWindow::on_btnModificar_clicked()
 {
-    // 1. VALIDACIÓN ESTRICTA: Verificamos si la lista de items seleccionados está vacía
     if (ui->tblMostrar->selectedItems().isEmpty()) {
         QMessageBox::warning(this, "Selección Requerida", "Por favor, elija el producto a modificar de la lista.");
-        return; // Detenemos la función aquí si no hay selección
+        return;
     }
 
     int fila = ui->tblMostrar->currentRow();
 
-    // Doble verificación de seguridad (por si acaso fila sea inválida)
     if (fila < 0) {
         return;
     }
 
-    // 2. Obtener datos actuales de la fila seleccionada
-    // (Asegúrate de que las columnas coincidan con tu tabla: 0=ID, 1=Nombre, 2=Cantidad, 3=Precio)
+
     QString idStr = ui->tblMostrar->item(fila, 0)->text();
     QString nombreActual = ui->tblMostrar->item(fila, 1)->text();
     QString cantActual = ui->tblMostrar->item(fila, 2)->text();
     QString precioActual = ui->tblMostrar->item(fila, 3)->text();
 
-    // 3. Abrir la ventana emergente
+
     DialogModificar ventanaEdicion(this);
     ventanaEdicion.setDatos(nombreActual, cantActual, precioActual);
 
-    // 4. Si el usuario guarda los cambios
+
     if (ventanaEdicion.exec() == QDialog::Accepted) {
         QString nuevoNombre = ventanaEdicion.getNombre();
         QString nuevaCantStr = ventanaEdicion.getCantidad();
@@ -270,7 +277,7 @@ void MainWindow::on_btnModificar_clicked()
         // Actualizamos el archivo .txt
         actualizarArchivo(idStr.toInt(), nuevoNombre.toStdString(), nuevaCantStr.toInt(), nuevoPrecioStr.toDouble());
 
-        // Actualizamos la tabla visualmente
+
         ui->tblMostrar->item(fila, 1)->setText(nuevoNombre);
         ui->tblMostrar->item(fila, 2)->setText(nuevaCantStr);
         ui->tblMostrar->item(fila, 3)->setText(nuevoPrecioStr);
@@ -293,11 +300,9 @@ void MainWindow::on_btnEliminar_clicked()
 
     if (QMessageBox::question(this, "Confirmar", "¿Eliminar este producto y reorganizar IDs?") == QMessageBox::Yes) {
 
-        // 1. Eliminamos de la tabla visual
         ui->tblMostrar->removeRow(filaAEliminar);
 
-        // 2. REORGANIZACIÓN: Recorremos TODA la tabla para reasignar IDs dinámicamente
-        // Esto hace que si borras el 2, el que era 3 ahora se escriba como 2 en el archivo
+
         ifstream leer("inventario.txt");
         vector<string> nombres, cantidades, precios;
         string id_viejo, n, c, p;
@@ -314,10 +319,10 @@ void MainWindow::on_btnEliminar_clicked()
         }
         leer.close();
 
-        // 3. Reescribimos el archivo con NUEVOS IDs SECUENCIALES
+
         ofstream escribir("inventario.txt", ios::trunc);
         for(int i = 0; i < nombres.size(); i++) {
-            // El nuevo ID es simplemente la posición (i + 1)
+
             escribir << (i + 1) << " " << nombres[i] << " " << cantidades[i] << " " << precios[i] << endl;
         }
         escribir.close();
@@ -327,7 +332,7 @@ void MainWindow::on_btnEliminar_clicked()
             ui->tblMostrar->item(i, 0)->setText(QString::number(i + 1));
         }
 
-        // 5. Actualizamos el próximo ID disponible en el formulario
+
         ui->txtID->setText(QString::number(ui->tblMostrar->rowCount() + 1));
 
         QMessageBox::information(this, "Éxito", "Producto eliminado y numeración reiniciada.");
